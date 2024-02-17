@@ -2,14 +2,27 @@ const { User } = require("./schemas/user.schema");
 
 const signup = async (body) => {
   try {
-    const newUser = await User.create(body);
+    const newUser = new User(body);
     newUser.setPassword(body.password);
+    await newUser.save();
     return newUser;
   } catch (error) {
-    console.log("Adding contact error:", error.message);
+    console.log("Adding user error:", error.message);
+    throw error;
+  }
+};
+
+const login = async (email) => {
+  try {
+    const user = await User.findOne({ email });
+    return user;
+  } catch (error) {
+    console.log("Finding user error:", error.message);
+    throw error;
   }
 };
 
 module.exports = {
   signup,
+  login,
 };
