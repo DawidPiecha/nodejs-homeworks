@@ -45,17 +45,21 @@ router.post("/login", async (req, res, next) => {
         .status(400)
         .json({ message: userToLogin.error.details[0].message });
     }
-
     const user = await login(email, password);
+
+    if (!user) {
+      return res.status(401).json({ message: "Email or password is wrong" });
+    }
+
     const isPasswordValid = user.validPassword(password);
-    if (!user || !isPasswordValid) {
+    if (!isPasswordValid) {
       return res.status(401).json({ message: "Email or password is wrong" });
     }
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
       expiresIn: "1h",
     });
-    return res.json({
+    return res.status(200).json({
       token,
       user: { email: user.email, subscription: user.subscription },
     });
