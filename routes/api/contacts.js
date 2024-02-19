@@ -17,7 +17,8 @@ const router = express.Router();
 
 router.get("/", async (req, res, next) => {
   try {
-    const contacts = await listContacts();
+    const ownerId = req.user._id;
+    const contacts = await listContacts(ownerId);
     res.status(200).json(contacts);
   } catch (error) {
     next(error);
@@ -27,7 +28,8 @@ router.get("/", async (req, res, next) => {
 router.get("/:contactId", async (req, res, next) => {
   try {
     const { contactId } = req.params;
-    const contactToFind = await getContactById(contactId);
+    const ownerId = req.user._id;
+    const contactToFind = await getContactById(contactId, ownerId);
     if (contactToFind) {
       res.status(200).json(contactToFind);
     } else {
@@ -43,6 +45,7 @@ router.get("/:contactId", async (req, res, next) => {
 router.post("/", async (req, res, next) => {
   try {
     const { name, email, phone, favorite } = req.body;
+    const ownerId = req.user._id;
     if (!name || !email || !phone) {
       return res.status(400).json({ message: "Missing required field(s)" });
     }
@@ -53,7 +56,10 @@ router.post("/", async (req, res, next) => {
         .status(400)
         .json({ message: dataToAdd.error.details[0].message });
     }
-    const newContact = await addContact({ name, email, phone, favorite });
+    const newContact = await addContact(
+      { name, email, phone, favorite },
+      ownerId
+    );
     res.status(201).json(newContact);
   } catch (error) {
     next(error);
@@ -63,7 +69,8 @@ router.post("/", async (req, res, next) => {
 router.delete("/:contactId", async (req, res, next) => {
   try {
     const { contactId } = req.params;
-    const contactToRemove = await removeContact(contactId);
+    const ownerId = req.user._id;
+    const contactToRemove = await removeContact(contactId, ownerId);
     if (contactToRemove) {
       res.status(200).json({ message: `contact with id ${contactId} deleted` });
     } else {
@@ -90,7 +97,8 @@ router.put("/:contactId", async (req, res, next) => {
         .status(400)
         .json({ message: dataToUpdate.error.details[0].message });
     } else {
-      const updatedContact = await updateContact(contactId, body);
+      const ownerId = req.user._id;
+      const updatedContact = await updateContact(contactId, body, ownerId);
 
       if (!updatedContact) {
         return res.status(404).json({ message: "Not found" });
@@ -116,7 +124,12 @@ router.patch("/:contactId/favorite", async (req, res, next) => {
         .status(400)
         .json({ message: dataToUpdate.error.details[0].message });
     } else {
-      const updatedContact = await updateStatusContact(contactId, { favorite });
+      const ownerId = req.user._id;
+      const updatedContact = await updateStatusContact(
+        contactId,
+        { favorite },
+        ownerId
+      );
 
       if (!updatedContact) {
         return res.status(404).json({ message: "Not found" });

@@ -49,8 +49,26 @@ const updateContactStatusSchema = Joi.object({
   favorite: Joi.boolean().required(),
 });
 
+const signupAndLoginSchema = Joi.object({
+  password: Joi.string()
+    .min(8)
+    .max(30)
+    .required()
+    .pattern(/^(?=.*[a-z])(?=.*[A-Z]).{8,30}$/)
+    .messages({
+      "string.min": "Password must be at least 8 characters",
+      "string.max": "Password must not be more than 30 characters",
+      "string.pattern.base":
+        "Password must contain at least one uppercase letter and one lowercase letter",
+    }),
+  email: Joi.string().email().required().messages({
+    "string.email": "Invalid email format",
+  }),
+});
+
 module.exports = {
   addContactSchema,
   updateContactSchema,
   updateContactStatusSchema,
+  signupAndLoginSchema,
 };

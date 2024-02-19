@@ -1,8 +1,8 @@
 const { Contact } = require("./schemas/contact.schema");
 
-const listContacts = async () => {
+const listContacts = async (ownerId) => {
   try {
-    const contacts = await Contact.find();
+    const contacts = await Contact.find({ owner: ownerId });
     return contacts;
   } catch (error) {
     console.log("Reading contact list error:", error.message);
@@ -10,37 +10,43 @@ const listContacts = async () => {
   }
 };
 
-const getContactById = async (contactId) => {
+const getContactById = async (contactId, ownerId) => {
   try {
-    const contactToFindById = await Contact.findOne({ _id: contactId });
+    const contactToFindById = await Contact.findOne({
+      _id: contactId,
+      owner: ownerId,
+    });
     return contactToFindById;
   } catch (error) {
     console.log("Getting contact by id error:", error.message);
   }
 };
 
-const removeContact = async (contactId) => {
+const removeContact = async (contactId, ownerId) => {
   try {
-    const contactToRemove = await Contact.findByIdAndDelete({ _id: contactId });
+    const contactToRemove = await Contact.findByIdAndDelete({
+      _id: contactId,
+      owner: ownerId,
+    });
     return contactToRemove;
   } catch (error) {
     console.log("Removing contact error:", error.message);
   }
 };
 
-const addContact = async (body) => {
+const addContact = async (body, ownerId) => {
   try {
-    const newContact = await Contact.create(body);
+    const newContact = await Contact.create({ ...body, owner: ownerId });
     return newContact;
   } catch (error) {
     console.log("Adding contact error:", error.message);
   }
 };
 
-const updateContact = async (contactId, body) => {
+const updateContact = async (contactId, body, ownerId) => {
   try {
     const contactToUpdate = await Contact.findByIdAndUpdate(
-      { _id: contactId },
+      { _id: contactId, owner: ownerId },
       body,
       { new: true }
     );
@@ -49,10 +55,10 @@ const updateContact = async (contactId, body) => {
     console.error("Updating contact error:", error.message);
   }
 };
-const updateStatusContact = async (contactId, body) => {
+const updateStatusContact = async (contactId, body, ownerId) => {
   try {
     const contactToUpdate = await Contact.findByIdAndUpdate(
-      { _id: contactId },
+      { _id: contactId, owner: ownerId },
       { favorite: body.favorite },
       { new: true }
     );
