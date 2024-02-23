@@ -1,11 +1,30 @@
 const app = require("./app");
 const mongoose = require("mongoose");
 require("dotenv").config();
+const path = require("path");
+const fs = require("fs").promises;
 
 const uriDb = process.env.DB_HOST;
 const PORT = process.env.PORT || 4000;
 
 const connection = mongoose.connect(uriDb);
+
+const createFolders = async () => {
+  const publicFolderPath = path.join(__dirname, "public");
+  const avatarsFolderPath = path.join(publicFolderPath, "avatars");
+
+  try {
+    await fs.access(publicFolderPath);
+  } catch (error) {
+    await fs.mkdir(publicFolderPath);
+  }
+
+  try {
+    await fs.access(avatarsFolderPath);
+  } catch (error) {
+    await fs.mkdir(avatarsFolderPath);
+  }
+};
 
 connection
   .then(() => {
@@ -13,6 +32,7 @@ connection
       console.log(`Server running. Use our API on port: ${PORT}`);
     });
     console.log("Database connection successful");
+    createFolders();
   })
   .catch((error) => {
     console.error("Database connection error:", error);
