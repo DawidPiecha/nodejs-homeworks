@@ -7,7 +7,7 @@ const signup = async (body) => {
     const avatarURL = gravatar.url(email, {
       protocol: "https",
       s: "250",
-      default: "identicon",
+      default: "robohash",
     });
     const newUser = new User({ email, password, subscription, avatarURL });
     newUser.setPassword(password);

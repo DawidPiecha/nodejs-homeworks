@@ -12,6 +12,7 @@ const connection = mongoose.connect(uriDb);
 const createFolders = async () => {
   const publicFolderPath = path.join(__dirname, "public");
   const avatarsFolderPath = path.join(publicFolderPath, "avatars");
+  const temporaryFolderPath = path.join(__dirname, "tmp");
 
   try {
     await fs.access(publicFolderPath);
@@ -23,6 +24,11 @@ const createFolders = async () => {
     await fs.access(avatarsFolderPath);
   } catch (error) {
     await fs.mkdir(avatarsFolderPath);
+  }
+  try {
+    await fs.access(temporaryFolderPath);
+  } catch (error) {
+    await fs.mkdir(temporaryFolderPath);
   }
 };
 
