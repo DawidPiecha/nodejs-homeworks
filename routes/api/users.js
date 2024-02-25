@@ -143,7 +143,6 @@ router.patch(
           .writeAsync(avatarPath);
       } catch (error) {
         await fs.unlink(temporaryPath);
-        console.log("level1");
         return next(error);
       }
       try {
@@ -152,11 +151,9 @@ router.patch(
         });
         return res.status(200).json({ avatarURL: `${newFileName}` });
       } catch (error) {
-        console.log("level2");
         next(error);
       }
     } catch (error) {
-      console.log("level3");
       next(error);
     }
   }
