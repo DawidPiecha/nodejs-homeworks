@@ -135,16 +135,16 @@ router.patch(
       const avatarPath = path.join(avatarsDir, newFileName);
 
       try {
-        const avatar = await Jimp.read(temporaryPath);
-        await avatar.cover(250, 250).crop(0, 0, 250, 250).write(avatarPath);
-      } catch (error) {
-        console.log(error.message);
-      }
-      try {
         await fs.rename(temporaryPath, avatarPath);
+        const avatar = await Jimp.read(avatarPath);
+        await avatar
+          .cover(250, 250)
+          .crop(0, 0, 250, 250)
+          .writeAsync(avatarPath);
       } catch (error) {
-        console.log(error.message);
         await fs.unlink(temporaryPath);
+        console.log("level1");
+        return next(error);
       }
       try {
         await User.findByIdAndUpdate(_id, {
@@ -152,9 +152,11 @@ router.patch(
         });
         return res.status(200).json({ avatarURL: `${newFileName}` });
       } catch (error) {
-        return next(error);
+        console.log("level2");
+        next(error);
       }
     } catch (error) {
+      console.log("level3");
       next(error);
     }
   }

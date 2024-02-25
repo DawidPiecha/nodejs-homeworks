@@ -10,10 +10,14 @@ const PORT = process.env.PORT || 4000;
 const connection = mongoose.connect(uriDb);
 
 const createFolders = async () => {
-  const publicFolderPath = path.join(__dirname, "public");
+  const publicFolderPath = path.join(process.cwd(), "public");
   const avatarsFolderPath = path.join(publicFolderPath, "avatars");
-  const temporaryFolderPath = path.join(__dirname, "tmp");
-
+  const temporaryFolderPath = path.join(process.cwd(), "tmp");
+  try {
+    await fs.access(temporaryFolderPath);
+  } catch (error) {
+    await fs.mkdir(temporaryFolderPath);
+  }
   try {
     await fs.access(publicFolderPath);
   } catch (error) {
@@ -25,20 +29,15 @@ const createFolders = async () => {
   } catch (error) {
     await fs.mkdir(avatarsFolderPath);
   }
-  try {
-    await fs.access(temporaryFolderPath);
-  } catch (error) {
-    await fs.mkdir(temporaryFolderPath);
-  }
 };
 
 connection
   .then(() => {
     app.listen(PORT, () => {
       console.log(`Server running. Use our API on port: ${PORT}`);
+      createFolders();
     });
     console.log("Database connection successful");
-    createFolders();
   })
   .catch((error) => {
     console.error("Database connection error:", error);

@@ -11,7 +11,7 @@ const app = express();
 
 const formatsLogger = app.get("env") === "development" ? "dev" : "short";
 
-const publicDirectoryPath = path.join(__dirname, "public");
+const publicDirectoryPath = path.join(process.cwd(), "public");
 app.use(express.static(publicDirectoryPath));
 
 app.use(logger(formatsLogger));
