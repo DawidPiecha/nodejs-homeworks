@@ -147,9 +147,9 @@ router.patch(
       }
       try {
         await User.findByIdAndUpdate(_id, {
-          avatarURL: `${newFileName}`,
+          avatarURL: `avatars/${newFileName}`,
         });
-        return res.status(200).json({ avatarURL: `${newFileName}` });
+        return res.status(200).json({ avatarURL: `avatars/${newFileName}` });
       } catch (error) {
         next(error);
       }
