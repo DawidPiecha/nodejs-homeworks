@@ -5,6 +5,7 @@ require("dotenv").config();
 const { User } = require("../../service/schemas/user.schema");
 
 const verifyToken = require("../../middlewares/auth");
+const upload = require("../../middlewares/upload");
 
 const router = express.Router();
 
@@ -13,6 +14,9 @@ const { signup, login } = require("../../service/usersService");
 const { signupAndLoginSchema } = require("../../validation/Joi");
 
 const jwt = require("jsonwebtoken");
+const Jimp = require("jimp");
+const path = require("path");
+const fs = require("fs").promises;
 
 router.post("/signup", async (req, res, next) => {
   try {
@@ -103,4 +107,56 @@ router.get("/current", verifyToken, async (req, res, next) => {
     next(error);
   }
 });
+
+router.patch(
+  "/avatars",
+  verifyToken,
+  upload.single("avatar"),
+  async (req, res, next) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({
+          message:
+            "Wrong file type to upload (jpg,png,jpeg,gif allowed) or no avatar uploaded",
+        });
+      }
+
+      if (!req.user) {
+        return res.status(401).json({ message: "Not authorized" });
+      }
+
+      const { path: temporaryPath } = req.file;
+      const { _id } = req.user;
+      const extension = path.extname(temporaryPath);
+
+      const newFileName = `${_id}-${Date.now()}${extension}`;
+
+      const avatarsDir = path.join(process.cwd(), "public", "avatars");
+      const avatarPath = path.join(avatarsDir, newFileName);
+
+      try {
+        await fs.rename(temporaryPath, avatarPath);
+        const avatar = await Jimp.read(avatarPath);
+        await avatar
+          .cover(250, 250)
+          .crop(0, 0, 250, 250)
+          .writeAsync(avatarPath);
+      } catch (error) {
+        await fs.unlink(temporaryPath);
+        return next(error);
+      }
+      try {
+        await User.findByIdAndUpdate(_id, {
+          avatarURL: `avatars/${newFileName}`,
+        });
+        return res.status(200).json({ avatarURL: `avatars/${newFileName}` });
+      } catch (error) {
+        next(error);
+      }
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
 module.exports = router;
