@@ -11,7 +11,8 @@ const router = express.Router();
 
 const { signup, login } = require("../../service/usersService");
 
-const { signupAndLoginSchema } = require("../../validation/Joi");
+const { signupAndLoginSchema, emailSchema } = require("../../validation/Joi");
+const sendEmailToVerify = require("../../nodemailer/emailVerification");
 
 const jwt = require("jsonwebtoken");
 const Jimp = require("jimp");
@@ -158,5 +159,51 @@ router.patch(
     }
   }
 );
+router.get("/verify/:verificationToken", async (req, res, next) => {
+  try {
+    const { verificationToken } = req.params;
+
+    const user = await User.findOne({ verificationToken });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    await User.findByIdAndUpdate(user._id, {
+      verificationToken: null,
+      verify: true,
+    });
+    return res.status(200).json({ message: "Verification successful" });
+  } catch (error) {
+    next(error);
+  }
+});
+router.post("/verify", async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    const correctEmail = emailSchema.validate({ email });
+    if (correctEmail.error) {
+      return res
+        .status(400)
+        .json({ message: correctEmail.error.details[0].message });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ message: "missing required field email" });
+    }
+    if (user.verify) {
+      return res
+        .status(400)
+        .json({ message: "Verification has already been passed" });
+    }
+    await sendEmailToVerify({
+      email,
+      verificationToken: user.verificationToken,
+    });
+
+    return res.status(200).json({ message: "Verification email sent" });
+  } catch (error) {
+    next(error);
+  }
+});
 
 module.exports = router;
