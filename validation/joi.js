@@ -65,10 +65,16 @@ const signupAndLoginSchema = Joi.object({
     "string.email": "Invalid email format",
   }),
 });
+const emailSchema = Joi.object({
+  email: Joi.string().email().required().messages({
+    "string.email": "Invalid email format",
+  }),
+});
 
 module.exports = {
   addContactSchema,
   updateContactSchema,
   updateContactStatusSchema,
   signupAndLoginSchema,
+  emailSchema,
 };

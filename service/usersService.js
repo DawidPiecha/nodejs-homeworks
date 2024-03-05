@@ -1,5 +1,7 @@
 const { User } = require("./schemas/user.schema");
 const gravatar = require("gravatar");
+const { v4: uuidv4 } = require("uuid");
+const sendEmailToVerify = require("../nodemailer/emailVerification");
 
 const signup = async (body) => {
   try {
@@ -9,7 +11,15 @@ const signup = async (body) => {
       s: "250",
       default: "robohash",
     });
-    const newUser = new User({ email, password, subscription, avatarURL });
+    const verificationToken = uuidv4();
+    await sendEmailToVerify({ email, verificationToken });
+    const newUser = new User({
+      email,
+      password,
+      subscription,
+      avatarURL,
+      verificationToken,
+    });
     newUser.setPassword(password);
     await newUser.save();
     return newUser;
